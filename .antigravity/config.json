@@ -1,0 +1,13 @@
+{
+    "agent_runtime": {
+        "memory_layer": "hybrid",
+        "pinned_context_files": [
+            ".antigravity/GUIDELINES.md"
+        ],
+        "token_guardrails": {
+            "max_context_tokens": 32768,
+            "prevent_recursive_loops": true,
+            "suppress_redundant_logs": true
+        }
+    }
+}
