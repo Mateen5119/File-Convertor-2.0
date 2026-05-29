@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 # Add shared engine to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'shared'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'shared'))
 
 from engine import convert
 from engine.validator import MAX_FILE_SIZE_WEB_BYTES
