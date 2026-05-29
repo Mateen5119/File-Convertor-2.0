@@ -11,9 +11,12 @@ from pathlib import Path
 from .validator import validate
 
 
-def rar_to_zip(data: bytes) -> bytes:
+def rar_to_zip(data: bytes, is_web: bool = False) -> bytes:
     """Convert RAR archive to ZIP format."""
-    validate(data, "rar")
+    validate(data, "rar", is_web=is_web)
+    if is_web:
+        raise ValueError("RAR conversions require system binaries and are desktop-only.")
+        
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / "input.rar"
         src.write_bytes(data)

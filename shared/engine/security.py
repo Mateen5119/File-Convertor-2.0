@@ -7,8 +7,10 @@ import re
 from .validator import validate
 
 
-def pem_to_pfx(data: bytes, password: bytes = b"changeme") -> bytes:
+def pem_to_pfx(data: bytes, is_web: bool = False, password: bytes = b"changeme") -> bytes:
     """Convert combined PEM (key + cert) to PFX/PKCS12 format."""
+    validate(data, "pem", is_web=is_web)
+    
     from cryptography.hazmat.primitives.serialization import (
         pkcs12, load_pem_private_key,
     )
@@ -36,7 +38,7 @@ def pem_to_pfx(data: bytes, password: bytes = b"changeme") -> bytes:
     cert = load_pem_x509_certificate(cert_match.group(1))
 
     pfx = pkcs12.serialize_key_and_certificates(
-        name=b"convert",
+        name=b"fileharbor",
         key=private_key,
         cert=cert,
         cas=None,
@@ -45,8 +47,10 @@ def pem_to_pfx(data: bytes, password: bytes = b"changeme") -> bytes:
     return pfx
 
 
-def pem_to_crt(data: bytes) -> bytes:
+def pem_to_crt(data: bytes, is_web: bool = False) -> bytes:
     """Extract the certificate block from a PEM file (already .crt-compatible)."""
+    validate(data, "pem", is_web=is_web)
+    
     match = re.search(
         b"(-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----)",
         data,

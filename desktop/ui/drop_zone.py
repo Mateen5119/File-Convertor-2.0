@@ -8,7 +8,8 @@ class DropZone(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.setObjectName("glassCard")
+        # ISS-011: Change ObjectName to align with QSS dropZone selector and dashed border styles
+        self.setObjectName("dropZone")
         self.setAcceptDrops(True)
         self.setProperty("dragActive", False)
         

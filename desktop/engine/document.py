@@ -10,8 +10,8 @@ from pathlib import Path
 from .validator import validate
 
 
-def pdf_to_docx(data: bytes) -> bytes:
-    validate(data, "pdf")
+def pdf_to_docx(data: bytes, is_web: bool = False) -> bytes:
+    validate(data, "pdf", is_web=is_web)
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / "input.pdf"
         dst = Path(tmp) / "output.docx"
@@ -23,13 +23,16 @@ def pdf_to_docx(data: bytes) -> bytes:
         return dst.read_bytes()
 
 
-def docx_to_pdf(data: bytes) -> bytes:
+def docx_to_pdf(data: bytes, is_web: bool = False) -> bytes:
     """Uses LibreOffice Portable (desktop-only path). Set LO_BIN env var."""
-    validate(data, "docx")
+    validate(data, "docx", is_web=is_web)
+    if is_web:
+        raise ValueError("docx→pdf is a premium feature and requires LibreOffice. Please use the Desktop app.")
     lo_bin = os.environ.get("LO_BIN", "soffice")
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / "input.docx"
         src.write_bytes(data)
+        # ISS-019: Strict 45s timeout gate prevents infinite hangs
         subprocess.run(
             [lo_bin, "--headless", "--invisible", "--convert-to", "pdf",
              "--outdir", tmp, str(src)],
@@ -41,17 +44,19 @@ def docx_to_pdf(data: bytes) -> bytes:
         return out.read_bytes()
 
 
-def md_to_html(data: bytes) -> bytes:
-    validate(data, "md")
+def md_to_html(data: bytes, is_web: bool = False) -> bytes:
+    validate(data, "md", is_web=is_web)
     import markdown
     html = markdown.markdown(data.decode("utf-8"), extensions=["tables", "fenced_code"])
     return html.encode("utf-8")
 
 
-def md_to_pdf(data: bytes) -> bytes:
-    validate(data, "md")
+def md_to_pdf(data: bytes, is_web: bool = False) -> bytes:
+    validate(data, "md", is_web=is_web)
+    if is_web:
+        raise ValueError("md→pdf requires system binary libraries (WeasyPrint). Please download the Desktop app.")
     with tempfile.TemporaryDirectory() as tmp:
-        html_bytes = md_to_html(data)
+        html_bytes = md_to_html(data, is_web=is_web)
         src = Path(tmp) / "input.html"
         dst = Path(tmp) / "output.pdf"
         src.write_bytes(html_bytes)
@@ -60,9 +65,11 @@ def md_to_pdf(data: bytes) -> bytes:
         return dst.read_bytes()
 
 
-def pptx_to_pdf(data: bytes) -> bytes:
+def pptx_to_pdf(data: bytes, is_web: bool = False) -> bytes:
     """LibreOffice Portable (desktop-only). Set LO_BIN env var."""
-    validate(data, "pptx")
+    validate(data, "pptx", is_web=is_web)
+    if is_web:
+        raise ValueError("pptx→pdf conversion is desktop-only.")
     lo_bin = os.environ.get("LO_BIN", "soffice")
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / "input.pptx"
@@ -76,8 +83,10 @@ def pptx_to_pdf(data: bytes) -> bytes:
         return (Path(tmp) / "input.pdf").read_bytes()
 
 
-def epub_to_pdf(data: bytes) -> bytes:
-    validate(data, "epub")
+def epub_to_pdf(data: bytes, is_web: bool = False) -> bytes:
+    validate(data, "epub", is_web=is_web)
+    if is_web:
+        raise ValueError("epub→pdf requires WeasyPrint and is desktop-only.")
     with tempfile.TemporaryDirectory() as tmp:
         from ebooklib import epub
         from weasyprint import HTML
@@ -94,5 +103,24 @@ def epub_to_pdf(data: bytes) -> bytes:
         return dst.read_bytes()
 
 
-def mobi_to_epub(data: bytes) -> bytes:
-    raise NotImplementedError("mobi→epub requires KindleUnpack — desktop only, no DRM support")
+def mobi_to_epub(data: bytes, is_web: bool = False) -> bytes:
+    """Unpacks MOBI and repackages to EPUB (desktop only)."""
+    validate(data, "mobi", is_web=is_web)
+    if is_web:
+        raise ValueError("MOBI conversions are premium desktop-only features.")
+    import mobi
+    import shutil
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        input_file = Path(tmp_dir) / "input.mobi"
+        input_file.write_bytes(data)
+        # Unpack Kindle MOBI file programmatically
+        extracted_dir, filepath = mobi.extract(str(input_file))
+        try:
+            out_path = Path(filepath)
+            if out_path.exists():
+                return out_path.read_bytes()
+            else:
+                raise ValueError("MOBI Unpacker failed to extract a valid EPUB structure.")
+        finally:
+            if os.path.exists(extracted_dir):
+                shutil.rmtree(extracted_dir)

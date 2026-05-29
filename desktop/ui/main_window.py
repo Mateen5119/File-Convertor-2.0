@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QPushButton, QLabel, QSpacerItem, QSizePolicy
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget, QPushButton, QToolButton, QLabel, QSpacerItem, QSizePolicy
 from PyQt6.QtCore import Qt, QPoint, QSettings
 from ui.drop_zone import DropZone
 from ui.conversion_queue import ConversionQueueWidget
@@ -19,25 +19,27 @@ except ImportError:
 class TitleBar(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.parent = parent
+        self.parent_window = parent
         self.setObjectName("titleBar")
         self.setFixedHeight(40)
+        self.drag_position = None
         
         layout = QHBoxLayout(self)
         layout.setContentsMargins(10, 0, 10, 0)
         
-        self.close_btn = QPushButton()
-        self.close_btn.setObjectName("macCloseBtn")
+        # ISS-012: Correct ObjectNames to align with dark.qss/light.qss selectors
+        self.close_btn = QToolButton()
+        self.close_btn.setObjectName("btnClose")
         self.close_btn.setFixedSize(12, 12)
-        self.close_btn.clicked.connect(self.parent.close)
+        self.close_btn.clicked.connect(self.parent_window.close)
         
-        self.min_btn = QPushButton()
-        self.min_btn.setObjectName("macMinBtn")
+        self.min_btn = QToolButton()
+        self.min_btn.setObjectName("btnMin")
         self.min_btn.setFixedSize(12, 12)
-        self.min_btn.clicked.connect(self.parent.showMinimized)
+        self.min_btn.clicked.connect(self.parent_window.showMinimized)
         
-        self.max_btn = QPushButton()
-        self.max_btn.setObjectName("macMaxBtn")
+        self.max_btn = QToolButton()
+        self.max_btn.setObjectName("btnMax")
         self.max_btn.setFixedSize(12, 12)
         self.max_btn.clicked.connect(self.toggle_maximize)
         
@@ -55,27 +57,28 @@ class TitleBar(QWidget):
         
         spacer2 = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         layout.addItem(spacer2)
-        
-        self.start_pos = None
 
     def toggle_maximize(self):
-        if self.parent.isMaximized():
-            self.parent.showNormal()
+        if self.parent_window.isMaximized():
+            self.parent_window.showNormal()
         else:
-            self.parent.showMaximized()
+            self.parent_window.showMaximized()
             
-    def mousePressEvent(self, event):
+    # ISS-017: Custom Frameless Window Drag Implementation
+    # Eliminates stuttering and jump bugs under PyQt6 by offsetting from global point
+    def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            self.start_pos = event.globalPosition().toPoint()
+            self.drag_position = event.globalPosition().toPoint() - self.parent_window.frameGeometry().topLeft()
+            event.accept()
 
-    def mouseMoveEvent(self, event):
-        if self.start_pos is not None:
-            delta = event.globalPosition().toPoint() - self.start_pos
-            self.parent.move(self.parent.pos() + delta)
-            self.start_pos = event.globalPosition().toPoint()
+    def mouseMoveEvent(self, event) -> None:
+        if event.buttons() == Qt.MouseButton.LeftButton and self.drag_position is not None:
+            self.parent_window.move(event.globalPosition().toPoint() - self.drag_position)
+            event.accept()
 
-    def mouseReleaseEvent(self, event):
-        self.start_pos = None
+    def mouseReleaseEvent(self, event) -> None:
+        self.drag_position = None
+        event.accept()
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -84,10 +87,10 @@ class MainWindow(QMainWindow):
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.resize(800, 600)
         
-        self.settings = QSettings("Web Harbor Solutions", "File Harbor")
+        self.settings = QSettings("FileHarborSolutions", "FileHarbor")
         
         central_widget = QWidget()
-        central_widget.setObjectName("mainContainer")
+        central_widget.setObjectName("centralWidget")
         self.setCentralWidget(central_widget)
         
         layout = QVBoxLayout(central_widget)

@@ -5,6 +5,7 @@ import ProgressBar from "./ProgressBar";
 import FileChip from "./ui/FileChip";
 
 export type QueuedFile = {
+  id: string; // ISS-008: Unique tracking key instead of array index to prevent React state mismatch
   file: File;
   sourceExt: string;
   targetExt: string;
@@ -16,8 +17,8 @@ export type QueuedFile = {
 
 type Props = {
   queue: QueuedFile[];
-  onUpdateTarget: (index: number, targetExt: string) => void;
-  onRemove: (index: number) => void;
+  onUpdateTarget: (id: string, targetExt: string) => void;
+  onRemove: (id: string) => void;
   onConvertAll: () => void;
 };
 
@@ -42,9 +43,10 @@ export default function ConversionQueue({ queue, onUpdateTarget, onRemove, onCon
         </button>
       </div>
 
-      {queue.map((item, i) => (
+      {/* ISS-008: Map using item.id as key to safeguard active queue transitions */}
+      {queue.map((item) => (
         <div
-          key={i}
+          key={item.id}
           className="glass-card rounded-lg p-sm flex items-center gap-sm"
         >
           {/* File type chip */}
@@ -74,7 +76,7 @@ export default function ConversionQueue({ queue, onUpdateTarget, onRemove, onCon
             <FormatSelector
               sourceExt={item.sourceExt}
               value={item.targetExt}
-              onChange={(ext) => onUpdateTarget(i, ext)}
+              onChange={(ext) => onUpdateTarget(item.id, ext)}
             />
           )}
 
@@ -90,7 +92,7 @@ export default function ConversionQueue({ queue, onUpdateTarget, onRemove, onCon
           ) : (
             <button
               className="text-outline hover:text-error transition-colors ml-2"
-              onClick={() => onRemove(i)}
+              onClick={() => onRemove(item.id)}
               disabled={item.status === "converting"}
             >
               <span className="material-symbols-outlined text-base">close</span>

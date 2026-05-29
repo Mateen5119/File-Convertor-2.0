@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { checkFileSizeLimit } from "@/lib/validate";
 import { WEB_UNSUPPORTED_FORMATS, WEB_FILE_SIZE_LIMIT_LABEL } from "@/lib/constants";
 import { convertFile } from "@/lib/api";
@@ -12,6 +12,17 @@ export default function DropZone() {
   const [dragActive, setDragActive] = useState(false);
   const [showSizeCTA, setShowSizeCTA] = useState(false);
   const [queue, setQueue] = useState<QueuedFile[]>([]);
+
+  // ISS-010: Ensure Object URLs are revoked on component unmount
+  useEffect(() => {
+    return () => {
+      queue.forEach((item) => {
+        if (item.resultUrl) {
+          URL.revokeObjectURL(item.resultUrl);
+        }
+      });
+    };
+  }, [queue]);
 
   const addFiles = useCallback((files: FileList | File[]) => {
     const arr = Array.from(files);
@@ -26,16 +37,19 @@ export default function DropZone() {
         continue;
       }
 
-      // Block oversized files
+      // Block oversized files (>3.3MB)
       const { valid, showDesktopCTA } = checkFileSizeLimit(file);
       if (!valid) {
         setShowSizeCTA(showDesktopCTA);
         continue;
       }
 
+      // ISS-008: Unique UUID to guarantee React index stability
+      const id = `${file.name}-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
       setQueue((prev) => [
         ...prev,
-        { file, sourceExt: ext, targetExt: "", status: "pending" },
+        { id, file, sourceExt: ext, targetExt: "", status: "pending" },
       ]);
     }
   }, []);
@@ -52,24 +66,30 @@ export default function DropZone() {
     if (e.target.files) addFiles(e.target.files);
   };
 
-  const updateTarget = (index: number, targetExt: string) => {
-    setQueue((prev) => prev.map((item, i) => i === index ? { ...item, targetExt } : item));
+  const updateTarget = (id: string, targetExt: string) => {
+    setQueue((prev) => prev.map((item) => item.id === id ? { ...item, targetExt } : item));
   };
 
-  const removeFromQueue = (index: number) => {
-    setQueue((prev) => prev.filter((_, i) => i !== index));
+  const removeFromQueue = (id: string) => {
+    setQueue((prev) => {
+      const target = prev.find((item) => item.id === id);
+      // ISS-010: Revoke Object URL immediately on removal to prevent memory leak
+      if (target?.resultUrl) {
+        URL.revokeObjectURL(target.resultUrl);
+      }
+      return prev.filter((item) => item.id !== id);
+    });
   };
 
   const convertAll = async () => {
     // Only process pending items that have a target format
-    const toProcess = queue.map((item, i) => ({ ...item, originalIndex: i }))
-                           .filter(item => item.status === "pending" && item.targetExt);
+    const toProcess = queue.filter(item => item.status === "pending" && item.targetExt);
     
     if (toProcess.length === 0) return;
 
-    // Mark as converting
-    setQueue(prev => prev.map((item, i) => 
-      toProcess.some(p => p.originalIndex === i) 
+    // Mark selected as converting
+    setQueue(prev => prev.map((item) => 
+      toProcess.some(p => p.id === item.id) 
         ? { ...item, status: "converting", progress: 10 } 
         : item
     ));
@@ -78,8 +98,8 @@ export default function DropZone() {
     for (const item of toProcess) {
       // Simulate progress
       const progressInterval = setInterval(() => {
-        setQueue(prev => prev.map((qItem, i) => {
-          if (i === item.originalIndex && qItem.status === "converting") {
+        setQueue(prev => prev.map((qItem) => {
+          if (qItem.id === item.id && qItem.status === "converting") {
             return { ...qItem, progress: Math.min((qItem.progress || 10) + 10, 90) };
           }
           return qItem;
@@ -90,8 +110,8 @@ export default function DropZone() {
       
       clearInterval(progressInterval);
 
-      setQueue(prev => prev.map((qItem, i) => {
-        if (i === item.originalIndex) {
+      setQueue(prev => prev.map((qItem) => {
+        if (qItem.id === item.id) {
           if (res.error) {
             return { ...qItem, status: "error", error: res.error };
           }

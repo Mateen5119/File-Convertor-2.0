@@ -68,4 +68,6 @@ def convert(data: bytes, source_fmt: str, target_fmt: str, is_web: bool = False)
     handler = CONVERSION_MAP.get(key)
     if not handler:
         raise ValueError(f"Unsupported conversion: {source_fmt} → {target_fmt}")
-    return handler(data)
+        
+    # ISS-003: Connect is_web parameter down to handler functions and validator gates
+    return handler(data, is_web=is_web)

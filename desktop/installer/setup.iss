@@ -9,6 +9,10 @@ OutputBaseFilename=FileHarbor_Setup
 Compression=lzma2
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64
+; ISS-017: Coordinator mutex locks to prevent installer write binary locks
+AppMutex=FileHarborInstanceMutex
+; ISS-062: Premium display uninstaller icon
+UninstallDisplayIcon={app}\FileHarbor.exe
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
@@ -24,3 +28,7 @@ Name: "{commondesktop}\File Harbor"; Filename: "{app}\FileHarbor.exe"; Tasks: de
 
 [Run]
 Filename: "{app}\FileHarbor.exe"; Description: "{cm:LaunchProgram,File Harbor}"; Flags: nowait postinstall skipifsilent
+
+[Registry]
+; ISS-025: Clean up all custom user settings and themes stored in settings registry
+Root: HKCU; Subkey: "Software\File Harbor Solutions"; Flags: uninsdeletekey

@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QProgressBar, QScrollArea
+from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QProgressBar, QScrollArea, QFileDialog
 from PyQt6.QtCore import pyqtSignal, Qt
 from pathlib import Path
 from ui.format_selector import FormatSelector
@@ -51,28 +51,34 @@ class QueueRow(QWidget):
         if not target_fmt or not self.format_selector.isEnabled():
             return
             
+        # ISS-014: Standard QFileDialog prompt (asks confirmation before overwrite)
+        default_dst = str(self.file_path.with_suffix(f".{target_fmt}"))
+        output_path, _ = QFileDialog.getSaveFileName(
+            self, 
+            "Save Converted File As", 
+            default_dst,
+            f"All Files (*.{target_fmt})"
+        )
+        if not output_path:
+            return # User canceled saving, do not convert
+            
         self.convert_btn.setEnabled(False)
         self.remove_btn.setEnabled(False)
         self.format_selector.setEnabled(False)
         self.progress_bar.show()
-        self.progress_bar.setRange(0, 0) # Indeterminate
+        self.progress_bar.setRange(0, 0) # Indeterminate progress
         
-        try:
-            with open(self.file_path, "rb") as f:
-                data = f.read()
-        except Exception as e:
-            self.conversion_error(str(e))
-            return
-            
-        output_path = str(self.file_path.with_suffix(f".{target_fmt}"))
         source_fmt = self.file_path.suffix.lstrip(".").lower()
         
-        self.worker = ConversionWorker(data, source_fmt, target_fmt, output_path)
+        # ISS-015: Pass the Path object directly. Do NOT read raw bytes in GUI thread!
+        self.worker = ConversionWorker(self.file_path, source_fmt, target_fmt, output_path)
+        
+        # ISS-024: finished signal only passes output path string (prevents memory bloat)
         self.worker.finished.connect(self.conversion_finished)
         self.worker.error.connect(self.conversion_error)
         self.worker.start()
         
-    def conversion_finished(self, result: bytes, output_path: str):
+    def conversion_finished(self, output_path: str):
         self.progress_bar.setRange(0, 100)
         self.progress_bar.setValue(100)
         self.status_label.setText(f"Saved: {Path(output_path).name}")
