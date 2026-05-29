@@ -216,3 +216,33 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ── Node / Next.js ────────────────────────────────────────────
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Env files (project-specific) ──────────────────────────────
+.env.local
+.env.production
+*.pem
+*.pfx
+*.key
+
+# ── Build artifacts ───────────────────────────────────────────
+*.exe
+*.zip
+
+# ── LibreOffice Portable (too large for git) ──────────────────
+desktop/libreoffice_portable/
+
+# ── Temp conversion dirs ──────────────────────────────────────
+tmp/
+temp_conversions/
+
+# ── OS ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

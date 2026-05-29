@@ -1,0 +1,52 @@
+name: Desktop CI
+
+on:
+  push:
+    paths:
+      - 'desktop/**'
+      - 'shared/**'
+      - '.github/workflows/desktop-ci.yml'
+  pull_request:
+    paths:
+      - 'desktop/**'
+      - 'shared/**'
+      - '.github/workflows/desktop-ci.yml'
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r desktop/requirements.txt
+          
+      - name: Install test tools
+        run: pip install ruff pytest pytest-qt
+        
+      - name: Setup headless display (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          echo "QT_QPA_PLATFORM=offscreen" >> $GITHUB_ENV
+          
+      - name: Lint with Ruff
+        run: ruff check desktop/ shared/
+        
+      - name: Run shared tests
+        run: pytest shared/tests/ -v
+        
+      - name: Run desktop tests
+        run: pytest desktop/tests/ -v
