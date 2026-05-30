@@ -1,11 +1,10 @@
 "use client";
-
+import FileChip from "./ui/FileChip";
 import FormatSelector from "./FormatSelector";
 import ProgressBar from "./ProgressBar";
-import FileChip from "./ui/FileChip";
 
 export type QueuedFile = {
-  id: string; // ISS-008: Unique tracking key instead of array index to prevent React state mismatch
+  id: string;
   file: File;
   sourceExt: string;
   targetExt: string;
@@ -17,61 +16,59 @@ export type QueuedFile = {
 
 type Props = {
   queue: QueuedFile[];
-  onUpdateTarget: (id: string, targetExt: string) => void;
+  onUpdateTarget: (id: string, ext: string) => void;
   onRemove: (id: string) => void;
   onConvertAll: () => void;
 };
 
+function formatBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function ConversionQueue({ queue, onUpdateTarget, onRemove, onConvertAll }: Props) {
-  const isConverting = queue.some(q => q.status === "converting");
+  const pendingWithTarget = queue.filter(q => q.status === "pending" && q.targetExt);
+  const allDone = queue.length > 0 && queue.every(q => q.status === "done");
 
   return (
     <div className="glass-card rounded-xl p-md flex flex-col gap-sm">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <p className="text-label-md text-on-surface-variant uppercase tracking-wider">
+        <span className="text-label-md text-outline uppercase tracking-wider">
           Queue ({queue.length})
-        </p>
-        <button 
-          className="glass-button-primary text-label-md disabled:opacity-50 disabled:cursor-not-allowed" 
-          onClick={onConvertAll}
-          disabled={isConverting || queue.every(q => q.status === "done" || !q.targetExt)}
-        >
-          {isConverting ? "Converting..." : "Convert All"}
-          <span className="material-symbols-outlined text-base ml-xs align-middle">
-            arrow_forward
-          </span>
-        </button>
+        </span>
+        {!allDone && pendingWithTarget.length > 0 && (
+          <button className="glass-button-primary text-label-md" onClick={onConvertAll}>
+            Convert All
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>arrow_forward</span>
+          </button>
+        )}
       </div>
 
-      {/* ISS-008: Map using item.id as key to safeguard active queue transitions */}
+      {/* Rows */}
       {queue.map((item) => (
-        <div
-          key={item.id}
-          className="glass-card rounded-lg p-sm flex items-center gap-sm"
-        >
-          {/* File type chip */}
+        <div key={item.id} className="flex items-center gap-sm p-sm rounded-lg border border-outline-variant/20 bg-surface-container/40">
+          {/* Badge */}
           <FileChip ext={item.sourceExt} status={item.status} />
 
-          {/* File name + progress */}
+          {/* Info */}
           <div className="flex-grow min-w-0">
-            <p className="text-body-md text-on-surface truncate">{item.file.name}</p>
-            <p className="text-label-sm text-outline">
-              {(item.file.size / 1024).toFixed(0)} KB
-            </p>
+            <p className="text-body-md text-on-surface truncate font-medium">{item.file.name}</p>
+            <p className="text-label-sm text-outline">{formatBytes(item.file.size)}</p>
+
             {item.status === "converting" && (
-              <ProgressBar value={item.progress ?? 0} />
+              <ProgressBar value={item.progress ?? 20} />
             )}
             {item.status === "done" && (
-              <p className="text-label-sm text-tertiary mt-xs">
-                ✓ Ready to download
-              </p>
+              <p className="text-label-sm text-tertiary mt-0.5">✓ Ready to download</p>
             )}
             {item.status === "error" && (
-              <p className="text-label-sm text-error mt-xs">{item.error}</p>
+              <p className="text-label-sm text-error mt-0.5 truncate">{item.error}</p>
             )}
           </div>
 
-          {/* Format selector */}
+          {/* Format selector or arrow */}
           {item.status === "pending" && (
             <FormatSelector
               sourceExt={item.sourceExt}
@@ -80,22 +77,23 @@ export default function ConversionQueue({ queue, onUpdateTarget, onRemove, onCon
             />
           )}
 
-          {/* Download or close */}
+          {/* Download or remove */}
           {item.status === "done" && item.resultUrl ? (
             <a
               href={item.resultUrl}
-              download={item.file.name.replace(`.${item.sourceExt}`, `.${item.targetExt}`)}
-              className="glass-button-primary text-label-md text-center"
+              download={`${item.file.name.replace(/\.[^.]+$/, "")}.${item.targetExt}`}
+              className="glass-button-primary text-label-md flex-shrink-0"
             >
-              Download
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>
+              Save
             </a>
           ) : (
             <button
-              className="text-outline hover:text-error transition-colors ml-2"
               onClick={() => onRemove(item.id)}
-              disabled={item.status === "converting"}
+              className="text-outline hover:text-error transition-colors p-1 flex-shrink-0"
+              title="Remove"
             >
-              <span className="material-symbols-outlined text-base">close</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>close</span>
             </button>
           )}
         </div>

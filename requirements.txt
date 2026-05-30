@@ -1,4 +1,5 @@
-# ── Core (web-safe only, no ffmpeg/LibreOffice binaries) ──────
+# Web-safe only. No C-extension binaries (pillow-heif, weasyprint, cairosvg, ffmpeg excluded).
+# FastAPI and pydantic removed — api/convert.py uses BaseHTTPRequestHandler.
 pdf2docx==0.5.8
 pymupdf==1.24.11
 pypdf==4.3.1
@@ -12,7 +13,3 @@ brotli==1.1.0
 xmltodict==0.13.0
 pyyaml==6.0.2
 ebooklib==0.18
-
-# ── Removed C-binary dependent libraries ──────────────────────
-# weasyprint and cairosvg have been removed to prevent Vercel build failures.
-# Their formats are blocked in constants.ts → WEB_UNSUPPORTED_FORMATS.

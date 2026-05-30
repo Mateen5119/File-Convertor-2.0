@@ -8,15 +8,18 @@ export default function ThemeToggle() {
 
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <div className="w-8 h-8" />; // Placeholder
+  // Avoid hydration mismatch — render placeholder until mounted
+  if (!mounted) return <div style={{ width: 36, height: 36 }} />;
 
   return (
     <button
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="p-2 rounded-full hover:bg-surface-variant transition-colors text-outline hover:text-on-surface"
-      aria-label="Toggle theme"
+      className="glass-button-primary"
+      style={{ padding: "0.375rem 0.5rem" }}
+      title="Toggle theme"
+      aria-label="Toggle color theme"
     >
-      <span className="material-symbols-outlined">
+      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
         {theme === "dark" ? "light_mode" : "dark_mode"}
       </span>
     </button>

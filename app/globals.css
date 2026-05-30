@@ -1,97 +1,164 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* ── Ambient Background (Level 0) ─────────────────────────────── */
+/* ── Stitch Color Tokens ───────────────────────────────────────
+   Tailwind v4: --color-* generates bg-*, text-*, border-* etc. */
+@theme {
+  /* Surface */
+  --color-background:                 #131315;
+  --color-surface:                    #131315;
+  --color-surface-dim:                #131315;
+  --color-surface-bright:             #39393b;
+  --color-surface-container-lowest:   #0e0e10;
+  --color-surface-container-low:      #1b1b1d;
+  --color-surface-container:          #1f1f21;
+  --color-surface-container-high:     #2a2a2c;
+  --color-surface-container-highest:  #353437;
+  --color-on-surface:                 #e4e2e4;
+  --color-on-surface-variant:         #c1c6d7;
+  --color-inverse-surface:            #e4e2e4;
+  --color-inverse-on-surface:         #303032;
+  --color-outline:                    #8b90a0;
+  --color-outline-variant:            #414755;
+  --color-surface-tint:               #adc6ff;
+  --color-surface-variant:            #353437;
+
+  /* Primary — Electric Blue */
+  --color-primary:                    #adc6ff;
+  --color-on-primary:                 #002e69;
+  --color-primary-container:          #4b8eff;
+  --color-on-primary-container:       #00285c;
+  --color-inverse-primary:            #005bc1;
+  --color-primary-fixed:              #d8e2ff;
+  --color-primary-fixed-dim:          #adc6ff;
+  --color-on-primary-fixed:           #001a41;
+  --color-on-primary-fixed-variant:   #004493;
+
+  /* Secondary — Indigo */
+  --color-secondary:                  #c2c1ff;
+  --color-on-secondary:               #1c0b9f;
+  --color-secondary-container:        #3834b6;
+  --color-on-secondary-container:     #b2b1ff;
+
+  /* Tertiary — Emerald */
+  --color-tertiary:                   #47e266;
+  --color-on-tertiary:                #003910;
+  --color-tertiary-container:         #00a73e;
+  --color-on-tertiary-container:      #00320d;
+
+  /* Error */
+  --color-error:                      #ffb4ab;
+  --color-on-error:                   #690005;
+  --color-error-container:            #93000a;
+  --color-on-error-container:         #ffdad6;
+
+  /* Border Radius (overrides Tailwind v4 defaults to match Stitch) */
+  --radius-sm:   0.25rem;
+  --radius-md:   0.75rem;
+  --radius-lg:   1rem;
+  --radius-xl:   1.5rem;
+  --radius-2xl:  2rem;
+  --radius-full: 9999px;
+
+  /* Named Spacing (generates gap-*, p-*, m-* utilities) */
+  --spacing-xs:     4px;
+  --spacing-sm:     12px;
+  --spacing-base:   8px;
+  --spacing-md:     24px;
+  --spacing-lg:     48px;
+  --spacing-xl:     80px;
+  --spacing-gutter: 24px;
+  --spacing-margin: 32px;
+}
+
+/* ── Typography Utilities (Stitch scale) ─────────────────────── */
+@layer utilities {
+  .text-display          { font-size: 3rem;     line-height: 3.5rem;  letter-spacing: -0.02em; font-weight: 700; }
+  .text-headline-lg      { font-size: 2rem;     line-height: 2.5rem;  letter-spacing: -0.01em; font-weight: 600; }
+  .text-headline-lg-mobile { font-size: 1.5rem; line-height: 2rem;    letter-spacing: -0.01em; font-weight: 600; }
+  .text-headline-md      { font-size: 1.25rem;  line-height: 1.75rem; font-weight: 600; }
+  .text-body-lg          { font-size: 1.125rem; line-height: 1.75rem; font-weight: 400; }
+  .text-body-md          { font-size: 1rem;     line-height: 1.5rem;  font-weight: 400; }
+  .text-label-md         { font-size: 0.875rem; line-height: 1.25rem; letter-spacing: 0.01em;  font-weight: 500; }
+  .text-label-sm         { font-size: 0.75rem;  line-height: 1rem;    letter-spacing: 0.05em;  font-weight: 600; }
+  .max-w-app             { max-width: 1200px; }
+}
+
+/* ── Base ─────────────────────────────────────────────────────── */
+html { background-color: #131315; color: #e4e2e4; scroll-behavior: smooth; }
+body {
+  min-height: 100vh;
+  font-family: var(--font-inter, "Inter", system-ui, -apple-system, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Ambient Grid ─────────────────────────────────────────────── */
 body::before {
   content: "";
   position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
+  inset: 0;
   background-image:
-    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to right,  rgba(255,255,255,0.03) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
   background-size: 40px 40px;
   z-index: -2;
   pointer-events: none;
 }
 
-/* ── Ambient Blobs ────────────────────────────────────────────── */
+/* ── Ambient Blobs ───────────────────────────────────────────── */
 .ambient-blob {
   position: fixed;
   border-radius: 50%;
   filter: blur(100px);
-  opacity: 0.1;
+  opacity: 0.12;
   z-index: -1;
   pointer-events: none;
+  will-change: transform;
 }
-.blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #4b8eff; }
+.blob-1 { top: -10%;    left: -10%;  width: 50vw; height: 50vw; background: #4b8eff; }
 .blob-2 { bottom: -20%; right: -10%; width: 60vw; height: 60vw; background: #c2c1ff; }
 
-/* ── Glass System (Dark Mode default) ───────────────────────────
-   Level 1 — Main pane / nav                                      */
+/* ── Glass System ─────────────────────────────────────────────
+   Level 1 — nav / main pane                                   */
 .glass-pane {
-  background: rgba(30, 30, 32, 0.7);
+  background: rgba(30, 30, 32, 0.75);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
-/* Level 2 — Cards / queue rows */
+/* Level 2 — cards */
 .glass-card {
   background: rgba(40, 40, 42, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-radius: 1.5rem;
 }
-/* Level 3 — Dropdowns / tooltips */
+/* Level 3 — dropdowns / popovers */
 .glass-popover {
-  background: rgba(50, 50, 52, 0.95);
+  background: rgba(50, 50, 52, 0.96);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-}
-
-/* ── Glass System (Light Mode) ──────────────────────────────────*/
-.light .glass-pane {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-}
-.light .glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-}
-
-/* ── Buttons ────────────────────────────────────────────────────*/
-.glass-button-primary {
-  background: rgba(75, 142, 255, 0.15);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(75, 142, 255, 0.3);
-  color: #adc6ff;
-  transition: all 0.2s ease;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
   border-radius: 1rem;
-  padding: 0.5rem 1.5rem;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-}
-.glass-button-primary:hover {
-  background: rgba(75, 142, 255, 0.25);
-  border-color: rgba(75, 142, 255, 0.5);
-  transform: translateY(-1px);
-}
-.glass-button-primary:active {
-  transform: scale(0.98);
 }
 
-/* ── Drop Zone ──────────────────────────────────────────────────*/
+/* Light mode overrides */
+.light .glass-pane  { background: rgba(255,255,255,0.72); border-color: rgba(0,0,0,0.08); box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+.light .glass-card  { background: rgba(255,255,255,0.88); border-color: rgba(0,0,0,0.08); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.light body::before { background-image: linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px); }
+.light .ambient-blob { opacity: 0.06; }
+.light body { color: #1c1c1e; background-color: #f5f5f7; }
+.light html { background-color: #f5f5f7; color: #1c1c1e; }
+
+/* ── Drop Zone ────────────────────────────────────────────────── */
 .drop-zone {
-  border: 2px dashed rgba(173, 198, 255, 0.3);
-  transition: all 0.3s ease;
+  border: 2px dashed rgba(173, 198, 255, 0.35);
   border-radius: 1.5rem;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 .drop-zone:hover,
 .drop-zone.drag-active {
@@ -99,30 +166,50 @@ body::before {
   background: rgba(173, 198, 255, 0.05);
 }
 
-/* ── Inputs ─────────────────────────────────────────────────────*/
+/* ── Buttons ─────────────────────────────────────────────────── */
+.glass-button-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(75, 142, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(75, 142, 255, 0.3);
+  color: #adc6ff;
+  border-radius: 1rem;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-decoration: none;
+  line-height: 1.4;
+}
+.glass-button-primary:hover  { background: rgba(75,142,255,0.28); border-color: rgba(75,142,255,0.55); transform: translateY(-1px); }
+.glass-button-primary:active { transform: scale(0.97); }
+.light .glass-button-primary { background: rgba(0,91,193,0.1); border-color: rgba(0,91,193,0.25); color: #005bc1; }
+.light .glass-button-primary:hover { background: rgba(0,91,193,0.18); }
+
+/* ── Inputs ──────────────────────────────────────────────────── */
 .sleek-input {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 1rem;
   color: #e4e2e4;
-  padding: 0.5rem 1rem;
-  transition: all 0.2s ease;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
 }
-.sleek-input:focus {
-  border-color: #4b8eff;
-  box-shadow: inset 0 2px 4px rgba(75, 142, 255, 0.1);
-  outline: none;
-}
-.sleek-input option {
-  background: #131315;
-  color: #e4e2e4;
-}
+.sleek-input:focus { border-color: #4b8eff; box-shadow: inset 0 2px 4px rgba(75,142,255,0.12); outline: none; }
+.sleek-input option { background: #1f1f21; color: #e4e2e4; }
+.light .sleek-input { border-color: rgba(0,0,0,0.15); color: #1c1c1e; }
+.light .sleek-input option { background: #ffffff; color: #1c1c1e; }
 
-/* ── Custom Scrollbar ───────────────────────────────────────────*/
-::-webkit-scrollbar { width: 6px; }
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }

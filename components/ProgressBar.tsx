@@ -1,11 +1,12 @@
-type Props = { value: number }; // 0–100
-
-export default function ProgressBar({ value }: Props) {
+export default function ProgressBar({ value }: { value: number }) {
   return (
-    <div className="w-full bg-surface-container rounded-full h-1.5 mt-xs overflow-hidden">
+    <div className="w-full bg-surface-container rounded-full overflow-hidden mt-1" style={{ height: 5 }}>
       <div
-        className="bg-primary h-full rounded-full transition-all duration-300 ease-linear"
-        style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+        className="h-full rounded-full transition-all duration-300 ease-out"
+        style={{
+          width: `${Math.max(0, Math.min(100, value))}%`,
+          background: "linear-gradient(90deg, #adc6ff 0%, #4b8eff 100%)",
+        }}
       />
     </div>
   );
