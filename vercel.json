@@ -1,1 +1,1 @@
-{ "buildCommand": "npm run build > public/build-log.txt 2>&1 || true", "outputDirectory": "public" }
+{"functions": {"api/**/*.py": {"runtime": "python3.12", "maxDuration": 10, "memory": 1024}}}
