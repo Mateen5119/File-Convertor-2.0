@@ -2,8 +2,12 @@
   "functions": {
     "api/convert.py": {
       "runtime": "python3.12",
-      "maxDuration": 60,
+      "maxDuration": 10,
       "memory": 1024
+    },
+    "api/health.py": {
+      "runtime": "python3.12",
+      "maxDuration": 10
     }
   }
 }

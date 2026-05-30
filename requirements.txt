@@ -4,7 +4,6 @@ pymupdf==1.24.11
 pypdf==4.3.1
 pdfplumber==0.11.4
 Pillow==10.4.0
-pillow-heif==0.18.0
 openpyxl==3.1.5
 markdown==3.7
 cryptography==43.0.3
@@ -13,8 +12,6 @@ brotli==1.1.0
 xmltodict==0.13.0
 pyyaml==6.0.2
 ebooklib==0.18
-fastapi==0.115.0
-pydantic==2.9.2
 
 # ── Removed C-binary dependent libraries ──────────────────────
 # weasyprint and cairosvg have been removed to prevent Vercel build failures.
