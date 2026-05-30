@@ -1,1 +1,1 @@
-{ "buildCommand": "echo hello", "outputDirectory": "public" }
+{ "buildCommand": "npm run build > public/build-log.txt 2>&1 || true", "outputDirectory": "public" }
