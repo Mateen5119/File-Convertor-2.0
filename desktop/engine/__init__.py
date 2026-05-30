@@ -12,8 +12,9 @@ from .security import pem_to_pfx, pem_to_crt
 from .font     import ttf_to_woff2, otf_to_woff2
 from .archive  import rar_to_zip
 from .cad      import dwg_to_pdf
+from typing import Callable, Dict, Tuple
 
-CONVERSION_MAP: dict[tuple[str, str], callable] = {
+CONVERSION_MAP: Dict[Tuple[str, str], Callable] = {
     ("pdf",  "docx"): pdf_to_docx,
     ("docx", "pdf"):  docx_to_pdf,
     ("heic", "jpg"):  heic_to_jpg,
