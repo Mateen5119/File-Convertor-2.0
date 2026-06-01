@@ -246,3 +246,15 @@ temp_conversions/
 # ── OS ────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+
+# .gitignore
+
+# Google Drive temporary sync files
+*.tmp.driveupload
+*.tmp.drivedownload
+.goutputstream-*
+
+# OS metadata files frequently replicated by Google Drive
+desktop.ini
+.DS_Store
+Icon?
